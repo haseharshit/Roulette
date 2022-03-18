@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Roulette by Maxhyt</title>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    
+    <script>
+      function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(";");
+        for (var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == " ") {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      }
+
+      function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }
+    </script>
+  </head>
+
+  <body>
+
+
+
+
+    <canvas
+      id="rollerCanvas"
+      height="40px"
+      style="border: 1px solid black; display:block; margin-left: auto;
+      margin-right: auto;"
+    ></canvas>
+
+
+    <form action="/" method="post">
+      <div class="form-group" >
+       
+        <label for="formControlRange">Example Range input</label>
+        <h2 style="text-align: right;">Remaining Amount : X</h2>
+        
+        <br>
+        <progress value="0" max="30" id="progressBar"></progress>
+        <br>
+        <input type="range" class="form-control-range" min="1" max="50" id="rangeBet" style="width: 10%;" onchange="updateTextInput(this.value);">
+        <input type="number" id="betamt" name="betamt" placeholder="Amount" min="1" style="width: 8%;" max="50">
+        <br><br>
+        <div class="btn-group" role="group" aria-label="Basic example">
+
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col"> <button type="submit" class="btn btn-danger" name="Red" onClick() >Red</button></th>
+                <th scope="col"><button type="submit" class="btn btn-dark" name="Black" onClick()>Black</button></th>
+                <th scope="col"><button type="submit" class="btn btn-success" name ="Green" onClick()>Green</button></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  
+                  <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">UserID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Bet Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>2</td>
+              </tr>
+              <!--
+                Insert Table row dynamically.
+              -->
+            </tbody>
+          </table>
+                  
+                </td>
+                
+                <td>
+                  
+                    <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">UserID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Bet Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">1</th>
+                  <td>Mark</td>
+                  <td>2</td>
+                </tr>
+                <!--
+                  Insert Table row dynamically.
+                -->
+              </tbody>
+            </table>
+                    
+                  </td>
+                  
+                
+                  <td>
+                  
+                    <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">UserID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Bet Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">1</th>
+                  <td>Mark</td>
+                  <td>2</td>
+                </tr>
+                <!--
+                  Insert Table row dynamically.
+                -->
+              </tbody>
+            </table>
+                    
+                  </td>
+                  
+                
+                
+              </tr>
+            </tbody>
+            
+        </div>
+         <!-- on button click, a function will invoke which deduct the amount from remaining. and place it in desired 
+          this click should also get disable after after the bet time is over.
+      -->
+      </div>
+    </form>
+
+
+
+
+
+
+
+    <script>
+
+      
+var timeleft = 30;
+        var downloadTimer = setInterval(function(){
+        if(timeleft <= 0){
+            clearInterval(downloadTimer);
+        }
+        document.getElementById("progressBar").value =timeleft;
+        console.log(timeleft);
+        timeleft -= 1;
+        }, 1000);
+
+         function updateTextInput(x){
+            document.getElementById("betamt").value=x;
+         }
+         function update(){
+             // change remaining amount..
+
+             // allow input to be done within range.
+         }
+
+
+
+
+      var socket = io();
+      var canvas = document.getElementById("rollerCanvas");
+      canvas.width = window.innerWidth * 0.45; // not responsive.
+      var ctx = canvas.getContext("2d");
+      ctx.font = "18px Calibri";
+      ctx.textAlign = "center";
+
+      var cookie_id = getCookie("COOKIE_ID");
+
+      if (cookie_id != "") {
+        socket.emit("PLAYER_ID", {
+          ID: cookie_id
+        });
+      } else {
+        cookie_id = Math.floor(Math.random() * 1000);
+        socket.emit("PLAYER_ID", {
+          ID: cookie_id
+        });
+      }
+
+      setCookie("COOKIE_ID", cookie_id, 28);
+
+      var resultNum = -1;
+      var offset;
+      var currentList = [];
+      var currentRollInterval;
+
+      socket.on("newNumbers", function(data) {
+        clearInterval(currentRollInterval);
+        currentList = data.list;
+        updateList();
+        resultNum = -1;
+
+        rollNums();
+      });
+
+      socket.on("GetResult", function(data) {
+        resultNum = data.resultNum;
+        offset = data.offset;
+      });
+
+      function rollNums() {
+        let speed = 15;
+
+        currentRollInterval = setInterval(function() {
+          let found = false;
+
+          if (resultNum != -1) {
+            for (let num of currentList) {
+              if (num.value == resultNum) {
+                let tmpspeed = (num.pos + offset - canvas.clientWidth / 2) / 70;
+                if (tmpspeed < 15 && tmpspeed > 0) speed = tmpspeed;
+
+                if (speed >= 0 && speed <= 0.01)
+                  clearInterval(currentRollInterval);
+              }
+            }
+          }
+
+          for (let i = 0; i < currentList.length; i++) {
+            currentList[i]["pos"] -= speed;
+
+            if (currentList[i].pos < -16) {
+              if (i == 0) {
+                currentList[i]["pos"] =
+                  currentList[currentList.length - 1].pos + 48 - speed;
+              } else {
+                currentList[i]["pos"] = currentList[i - 1].pos + 48;
+              }
+            }
+          }
+
+          updateList();
+        }, 1000 / 60);
+      }
+
+      function updateList() {
+        ctx.fillStyle = "#330033";
+        ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+        for (let num of currentList) {
+          let res;
+          if (num.pos < canvas.clientWidth + 16) {
+            //Background colour
+            if (num.value == 0) {
+              // black
+              res="Offline with Online paper.";
+              ctx.fillStyle = "#000000";
+            } else if (num.value % 2 == 0) {
+              // red
+              ctx.fillStyle = "#CC0000";
+              res="Online.";
+            } else {
+              // green
+              ctx.fillStyle = "#32CD32";
+              res="Offine.";
+            }
+            ctx.fillRect(num.pos - 16, 4, 32, 28);
+
+            //Number colour
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(res, num.pos, 24);
+          }
+        }
+
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = "2px";
+        ctx.moveTo(canvas.clientWidth / 2, 0);
+        ctx.lineTo(canvas.clientWidth / 2, 32);
+        ctx.stroke();
+      }
+    </script>
+  </body>
+  <footer>
+    <div
+      style="text-align: center; font-size: 12px; position: fixed; bottom: 5px"
+    >
+      This page is for testing/educational purposes only. No currency involved.
+    </div>
+  </footer>
+</html>
